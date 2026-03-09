@@ -26,18 +26,56 @@ $notImplemented = false;
 
 try {
   // ---------- STEP 1: 注文ヘッダの取得（TODO） ----------
+  $pdo = pdo();
   $sqlHead = <<<SQL
 -- TODO: SQLを組み立ててください
+SELECT
+o.id,
+o.order_date,
+o.total_amount,
+u.name AS user_name
+FROM
+orders o
+JOIN
+users u ON o.user_id = u.id
+WHERE
+o.id = :id
 SQL;
   // ここでSQLを実行してください
+$stmt = $pdo->prepare($sqlHead);
+$stmt->bindValue(':id' , $id, PDO::PARAM_INT);
+$stmt->execute();
 
+$head = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if(!$head) {
+  http_response_code(404);
+  exit('Not Found');
+}
   // ---------- STEP 2: 明細の取得（TODO） ----------
   $sqlItems = <<<SQL
 -- TODO:SQLを組み立ててください
+SELECT
+p.name AS product_name,
+oi.qty,
+oi.unit_price,
+oi.qty * oi.unit_price AS subtotal
+FROM
+order_items oi
+JOIN
+products p ON oi.product_id = p.id
+WHERE
+oi.order_id = :id
+ORDER BY
+oi.id ASC
 SQL;
   // 例：
   // ここでSQLを実行してください
+$stmt = $pdo->prepare($sqlItems);
+$stmt->bindValue(':id', $id, PDO::PARAM_INT);
+$stmt->execute();
 
+$list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
   error_log('[orders/show] '.$e->getMessage());
   http_response_code(500);

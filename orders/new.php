@@ -24,7 +24,22 @@ $old    = flash_get('old', ['user_id'=>'', 'qty'=>[]]);
 // 要件：users テーブルから id, name を取得し、id の昇順で並べる
 $users = [];
 try {
+  $pdo = pdo();
+
+  $sql = "
+  SELECT
+  id,
+  name
+  FROM
+  users
+  ORDER BY
+  id ASC
+  ";
+
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute();
     // ここでusersを取得してください
+  $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
     error_log('[orders/new users] '.$e->getMessage());
 }
@@ -33,7 +48,23 @@ try {
 // 要件：products テーブルから id, name, price を取得し、id の昇順で並べる
 $products = [];
 try {
+  $pdo = pdo();
+
+  $sql = "
+  SELECT
+  id,
+  name,
+  price
+  FROM
+  products
+  ORDER BY
+  id ASC
+  ";
+
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute();
     // ここでproductsを取得してください
+  $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
     error_log('[orders/new products] '.$e->getMessage());
 }
@@ -65,7 +96,7 @@ try {
 
     <div class="card">
       <!-- TODO: action の先は create.php（MUST） -->
-      <form action="" method="post" class="form-grid" novalidate>
+      <form action="create.php" method="post" class="form-grid" novalidate>
         <!-- STEP 3: CSRF トークン（MUST／この hidden は消さない） -->
         <?= csrf_field() ?>
 

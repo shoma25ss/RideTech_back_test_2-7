@@ -20,15 +20,28 @@ ensure_session();
 // ---------- STEP 1: ページ番号の取得（TODO） ----------
 $perPage = 20;
 // $page = max(1, (int)($_GET['page'] ?? 1)); // ← 例
-$page = 1; // TODO: 上の例のように GET から取得して1未満は1に
+$page = max(1,(int)($_GET['page'] ?? 1)); // TODO: 上の例のように GET から取得して1未満は1に
 
 // ---------- STEP 2: OFFSET の計算（TODO） ----------
-$offset = 0; // TODO: ($page - 1) * $perPage を代入
+$offset = ($page - 1) * $perPage; // TODO: ($page - 1) * $perPage を代入
 
 // ---------- STEP 3: SQL を組み立て（TODO） ----------
 // 要件：orders と users を JOIN、order_date DESC, id DESC、LIMIT/OFFSET
 $sql = <<<SQL
 -- TODO: SQLを組み立ててください
+SELECT
+o.id,
+u.name AS user_name,
+o.order_date,
+o.total_amount
+FROM
+orders o
+JOIN
+users u ON u.id = o.user_id
+ORDER BY
+o.order_date DESC,
+o.id DESC
+LIMIT :limit OFFSET :offset
 SQL;
 
 // ---------- STEP 4: プリペアド & バインド & 実行（TODO） ----------
@@ -38,10 +51,24 @@ $hasPrev = false;
 
 try {
     // ここでSQLを実行してください
-
+    $pdo = pdo();
+    $stmt = $pdo->prepare($sql);
     // ---------- STEP 5: 次ページ・前ページの有無を判定（TODO） ----------
     // ここで次ページ・前ページの有無を判定してください
+    $limit = $perPage + 1;
+    
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset,PDO::PARAM_INT);
+    
+    $stmt->execute();
 
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($rows) > $perPage) {
+      $hasNext = true;
+      array_pop($rows);
+    }
+    $hasPrev = ($page > 1);
 } catch (Throwable $e) {
     // 失敗時はエラーログだけ残して、画面は空リスト表示
     error_log('[orders/index] '.$e->getMessage());
